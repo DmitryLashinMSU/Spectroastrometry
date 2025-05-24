@@ -208,11 +208,13 @@ def Frame_model(slit, seeing, sep, pix_size, T1, T2, CRVAL1, image_size_X, image
     image = image[:, int(PSF_width / 2): - int(PSF_width / 2)]
 
     # Итоговое изображение с шумами
-
+    image = image + BN  # Добавление фона
+    image = np.random.poisson(image)  # Добавление пуассоновского шума
+    # Добавление шума считывания
     for i in range(image_size_X):
         for j in range(image_size_Y):
             R = random.randint(0, RN)
-            image[j, i] += np.sqrt(image[j, i] + BN + R**2) + BN + R
+            image[j, i] += R
 
     return(image, PSF_kernel_1, Lambda1, Int1, Lambda2, Int2)
 
@@ -255,10 +257,12 @@ def Frame_model_known_spec(slit, seeing, sep, pix_size, CRVAL1, image_size_X, im
     image = image[:, int(PSF_width / 2): - int(PSF_width / 2)]
 
     # Итоговое изображение с шумами
-
-    for i in range(image_size_X - 1):
-        for j in range(image_size_Y - 1):
+    image = image + BN  # Добавление фона
+    image = np.random.poisson(image)  # Добавление пуассоновского шума
+    # Добавление шума считывания
+    for i in range(image_size_X):
+        for j in range(image_size_Y):
             R = random.randint(0, RN)
-            image[j, i] += np.sqrt(image[j, i] + BN + R**2) + BN + R
+            image[j, i] += R
 
     return(image, PSF_kernel_1)
