@@ -1,193 +1,193 @@
 # Spectroastrometry
-В репозитории содержится <strong><a href="./Spectroastrometry.py">модуль</a></strong> на языке Python, содержащий набор функций для спектроастрометрической обработки данных, а также <strong><a href="./Example/Example.ipynb">образец</a></strong> его применения. Идея метода описана в работе [Whelan & Garcia 2008](https://ui.adsabs.harvard.edu/abs/2008LNP...742..123W/abstract). 
+The repository contains a <strong><a href="./Spectroastrometry.py">Python module</a></strong> with a set of functions for spectroastrometric data processing, as well as a <strong><a href="./Example/Example.ipynb">usage example</a></strong>. The method is described in the paper [Whelan & Garcia 2008](https://ui.adsabs.harvard.edu/abs/2008LNP...742..123W/abstract).
 
-## Быстрый старт
-Просто поместите файл `Spectroastrometry.py` в директорию с вашим Python-проектом и подключите его как обычную библиотеку `Spectroastrometry`.
+## Quick Start
+Place the `Spectroastrometry.py` file in your Python project directory and import it as a standard library: `Spectroastrometry`.
 
-## Документация
-Ниже приведен список функций модуля, их описание и параметры.
+## Documentation
+Below is a list of the module's functions, their descriptions, and parameters.
 
 ---
 
 ### `G_fit`
-Аппроксимация "положительной" гауссовой функцией для профиля интенсивности.
+Approximation with a "positive" Gaussian function for the intensity profile.
 
-**Аргументы:**
-| Параметр | Описание |
-|----------|----------|
-| `coord`  | Массив координат (пиксели) |
-| `I`      | Массив интенсивностей (ADU) |
+**Arguments:**
+| Parameter | Description |
+|-----------|-------------|
+| `coord`   | array of coordinates (pixels) |
+| `I`       | array of intensities (ADU) |
 
-**Возвращает:**
-- `P` — массив параметров модели:  
-  `P[0]` — интеграл интенсивности,  
-  `P[1]` — стандартное отклонение,  
-  `P[2]` — положение центра,  
-  `P[3]` — фон.
+**Returns:**
+- `P` — array of model parameters:  
+  `P[0]` — integrated intensity,  
+  `P[1]` — standard deviation,  
+  `P[2]` — center position,  
+  `P[3]` — background.
 
-**Примечание:**  
-Использует функцию ошибок `erf` для моделирования дискретного гауссова профиля.
+**Note:**  
+`G_fit` uses the error function `erf` to model a discrete Gaussian profile.
 
 ---
 
 ### `neg_G_fit`
-Аппроксимация "отрицательной" гауссовой функцией (для линий поглощения).
+Approximation with a "negative" Gaussian function (for absorption lines).
 
-**Аргументы:**
-| Параметр | Описание |
-|----------|----------|
-| `coord`  | Массив координат (пиксели) |
-| `I`      | Массив интенсивностей (ADU) |
+**Arguments:**
+| Parameter | Description |
+|-----------|-------------|
+| `coord`   | array of coordinates (pixels) |
+| `I`       | array of intensities (ADU) |
 
-**Возвращает:**
-- `P` — массив параметров модели (аналогично `G_fit`, но для поглощения).
+**Returns:**
+- `P` — array of model parameters (similar to `G_fit`, but for absorption).
 
 ---
 
 ### `Center_search`
-Вычисление наблюдаемого смещения и FWHM вдоль спектрального среза для всех точек спектра вдоль направления дисперсии.
+Calculation of the observed shift and FWHM along the spectral slice for all spectral points along the dispersion direction.
 
-**Аргументы:**
-| Параметр   | Описание |
-|------------|----------|
-| `CRVAL1`   | Начальное значение длины волны спектра (λ) |
-| `CDELT1`   | Дисперсия (Δλ/пиксель) |
-| `x_start`  | Начальный пиксель по X |
-| `x_end`    | Конечный пиксель по X |
-| `area`     | Полуширина выделенной для анализа области по Y |
-| `Y_est`    | Предполагаемый центр спектра по Y |
-| `image`    | 2D массив изображения |
+**Arguments:**
+| Parameter  | Description |
+|------------|-------------|
+| `CRVAL1`   | starting wavelength value of the spectrum (λ) |
+| `CDELT1`   | dispersion (Δλ/pixel) |
+| `x_start`  | starting X pixel |
+| `x_end`    | ending X pixel |
+| `area`     | half-width of the selected analysis region along Y |
+| `Y_est`    | estimated spectrum center along Y |
+| `image`    | 2D image array |
 
-**Возвращает:**
-- `LAMBDA`   — массив длин волн
-- `SPEC`     — спектр (сумма по Y в выделенной области)
-- `CENTER`   — координаты центра по Y для каждого X
-- `FWHM`     — ширина на полувысоте для каждого X
-- `ERRORBAR` — погрешность определения центра
+**Returns:**
+- `LAMBDA`   — array of wavelengths
+- `SPEC`     — spectrum
+- `CENTER`   — center coordinates along Y for each X
+- `FWHM`     — full width at half maximum for each X
+- `ERRORBAR` — uncertainty in the center determination
 
-**Примечание:**  
-Погрешность вычисляется согласно [Condon, 1977](https://ui.adsabs.harvard.edu/abs/1997PASP..109..166C/abstract) по формуле:
+**Note:**  
+The uncertainty is calculated according to [Condon, 1977](https://ui.adsabs.harvard.edu/abs/1997PASP..109..166C/abstract) using the formula:
 
 $$
 \delta = 0.6 \frac{FWHM}{SNR},
 $$
 
-где $FWHM$ — полуширина спектра, $SNR$ — отношение сигнал/шум.
+where $FWHM$ is the full width at half maximum, $SNR$ is the signal-to-noise ratio.
 
 ---
 
 ### `LCS_auto`
-Оценка истинного смещения на основе спектральной линии (автоматический поиск центра линии). Для этого вычисляются профили яркости спектра в области максимума выбранной линии, а также с некоторым отступом от нее (там, где присутствует только континуум). Вычитая континуум, можно получить чистый профиль линии, центр которого соответствует истинной позиции источника, излучающего в этой линии.
+Estimate of the true shift based on a spectral line (automatic line center search). This is done by computing the brightness profiles of the spectrum in the region of the selected line's maximum, as well as with some offset from it (where only the continuum is present). Subtracting the continuum yields the pure line profile, whose center corresponds to the true position of the source emitting in this line.
 
-**Аргументы:**
-| Параметр    | Описание |
-|-------------|----------|
-| `CRVAL1`    | Начальное значение λ |
-| `CDELT1`    | Дисперсия (Δλ/пиксель) |
-| `image`     | 2D изображение |
-| `LAMBDA`    | Массив длин волн (от `Center_search`) |
-| `SPEC`      | Спектр (от `Center_search`) |
-| `x_start`   | Начало линии (пиксель) |
-| `x_end`     | Конец линии (пиксель) |
-| `x_cont`    | X-координата точки, выбранной для определения континуума |
-| `Y_est`     | Предполагаемый центр по Y |
-| `area`      | Полуширина области по Y |
-| `Line_type` | Тип линии: `'emission'` или `'absorption'` |
+**Arguments:**
+| Parameter   | Description |
+|-------------|-------------|
+| `CRVAL1`    | starting λ value |
+| `CDELT1`    | dispersion (Δλ/pixel) |
+| `image`     | 2D image |
+| `LAMBDA`    | array of wavelengths (from `Center_search`) |
+| `SPEC`      | spectrum (from `Center_search`) |
+| `x_start`   | line start (pixel) |
+| `x_end`     | line end (pixel) |
+| `x_cont`    | X-coordinate of the point selected for continuum determination |
+| `Y_est`     | estimated center along Y |
+| `area`      | half-width of the region along Y |
+| `Line_type` | line type: `'emission'` or `'absorption'` |
 
-**Возвращает:**
-- `P4` — параметры модели линии после вычитания континуума
-- Положение центра линии в пикселях
+**Returns:**
+- `P4` — parameters of the line model after continuum subtraction
+- Position of the line center in pixels
 
 ---
 
 ### `LCS_target`
-Оценка истинного смещения на основе линии с заданным вручную центром.
+Estimate of the true shift based on a line with a manually specified center.
 
-**Аргументы:**
-| Параметр | Описание |
-|----------|----------|
-| `image`  | 2D изображение |
-| `x_line` | Пиксель центра линии |
-| `x_cont` | Пиксель для континуума |
-| `Y_est`  | Предполагаемый центр по Y |
-| `area`   | Полуширина области по Y |
+**Arguments:**
+| Parameter | Description |
+|-----------|-------------|
+| `image`   | 2D image |
+| `x_line`  | pixel of the line center |
+| `x_cont`  | pixel for continuum |
+| `Y_est`   | estimated center along Y |
+| `area`    | half-width of the region along Y |
 
-**Возвращает:**
-- `P4` — параметры модели линии
-- `P3` — параметры фона (континуума)
+**Returns:**
+- `P4` — parameters of the line model
+- `P3` — parameters of the background (continuum)
 
 ---
 
 ### `Median_images`
-Медианная обработка набора изображений.
+Median processing of a set of images.
 
-**Аргументы:**
-| Параметр  | Описание |
-|-----------|----------|
-| `images`  | Список 2D массивов одинакового размера |
+**Arguments:**
+| Parameter | Description |
+|-----------|-------------|
+| `images`  | list of 2D arrays of the same size |
 
-**Возвращает:**
-- `median_image` — медианное изображение
+**Returns:**
+- `median_image` — median image
 
 ---
 
 ### `Average_images`
-Усреднение набора изображений.
+Averaging of a set of images.
 
-**Аргументы:**
-| Параметр  | Описание |
-|-----------|----------|
-| `images`  | Список 2D массивов одинакового размера |
+**Arguments:**
+| Parameter | Description |
+|-----------|-------------|
+| `images`  | list of 2D arrays of the same size |
 
-**Возвращает:**
-- `average_image` — усреднённое изображение
+**Returns:**
+- `average_image` — averaged image
 
 ---
 
 ### `Detrend`
-Устранение тренда методом скользящего среднего.
+Trend removal using a rolling mean method.
 
-**Аргументы:**
-| Параметр  | Описание |
-|-----------|----------|
-| `window`  | Ширина окна для скользящего среднего |
-| `CENTER`  | Массив значений центров |
+**Arguments:**
+| Parameter | Description |
+|-----------|-------------|
+| `window`  | rolling mean window width |
+| `CENTER`  | array of center values |
 
-**Возвращает:**
-- `CENTER_rolling` — центры после удаления тренда
-- `rolling_mean`   — скользящее среднее
+**Returns:**
+- `CENTER_rolling` — centers after trend removal
+- `rolling_mean`   — rolling mean
 
 ---
 
 ### `remove_polynomial_trend`
-Устранение полиномиального тренда n-й степени.
+Removal of an n-th degree polynomial trend.
 
-**Аргументы:**
-| Параметр | Описание |
-|----------|----------|
-| `data`   | 2D массив данных (например, `CENTER`) |
-| `n`      | Степень полинома |
+**Arguments:**
+| Parameter | Description |
+|-----------|-------------|
+| `data`    | 2D data array (e.g., `CENTER`) |
+| `n`       | polynomial degree |
 
-**Возвращает:**
-- `detrended_data` — данные без тренда
+**Returns:**
+- `detrended_data` — detrended data
 
 ---
 
 ### `show_3D`
-Построение 3D-графика выбранной области изображения.
+Plots a 3D graph of a selected region of the image.
 
-**Аргументы:**
-| Параметр  | Описание |
-|-----------|----------|
-| `image`   | 2D изображение |
-| `x_start` | Начало по X |
-| `x_end`   | Конец по X |
-| `y_start` | Начало по Y |
-| `y_end`   | Конец по Y |
+**Arguments:**
+| Parameter | Description |
+|-----------|-------------|
+| `image`   | 2D image |
+| `x_start` | start X |
+| `x_end`   | end X |
+| `y_start` | start Y |
+| `y_end`   | end Y |
 
 ---
 
-## Зависимости
+## Dependencies
 - `numpy`
 - `matplotlib.pyplot`
 - `scipy.optimize.least_squares`
@@ -195,4 +195,4 @@ $$
 
 ---
 
->Мои контакты: [lashinda@my.msu.ru](mailto:lashinda@my.msu.ru)
+>Contact me: [lashinda@my.msu.ru](mailto:lashinda@my.msu.ru)
