@@ -189,8 +189,9 @@ $$
 
 ## Зависимости
 - `numpy`
-- `matplotlib`
-- `scipy` (least_squares, erf)
+- `matplotlib.pyplot`
+- `scipy.optimize.least_squares`
+- `scipy.special.erf`
 
 ---
 
